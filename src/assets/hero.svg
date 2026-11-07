@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMid slice">
+  <!-- PLACEHOLDER: reemplazar por src/assets/hero.jpg (paisaje) y cambiar el import en Inicio.tsx -->
+  <defs>
+    <linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4c98a"/><stop offset=".55" stop-color="#e9a77a"/><stop offset="1" stop-color="#7d9a6a"/></linearGradient>
+    <linearGradient id="r" x1="0" x2="1"><stop offset="0" stop-color="#e8b58b"/><stop offset="1" stop-color="#d9a27c"/></linearGradient>
+  </defs>
+  <rect width="1600" height="300" fill="url(#c)"/>
+  <path d="M0 170 Q300 130 620 165 T1250 150 T1600 160 V300 H0z" fill="#5f8a5c"/>
+  <path d="M0 215 Q400 180 900 205 T1600 195 V300 H0z" fill="#2f5a3d"/>
+  <path d="M700 205 Q1000 188 1400 200 L1400 215 Q1000 205 700 218z" fill="url(#r)" opacity=".8"/>
+  <path d="M0 250 Q500 225 1000 245 T1600 240 V300 H0z" fill="#1f3329"/>
+</svg>

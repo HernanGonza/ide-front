@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "ol/ol.css";
+
+/* ───────── Marca (Brandbook 2024, Ministerio de Ecología y RNR de Misiones) ─────────
+   Verdes institucionales + beige + rosa del Lapacho. Tipografía Oak Sans (OFL), local. */
+@font-face {
+  font-family: 'Oak Sans';
+  src: url('./assets/fonts/OakSans-Variable.ttf') format('truetype');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Oak Sans';
+  src: url('./assets/fonts/OakSans-Italic-Variable.ttf') format('truetype');
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --verde-900: #1f3329;
+  --verde-800: #2a4636;
+  --verde-700: #3e6c51;
+  --oliva: #6f7f2a;
+  --verde-200: #cad6a6;
+  --amarillo: #f0e868;
+  --beige: #f5f3ef;
+  --rosa: #f5a5bf;
+  --rosa-fuerte: #c9346c;
+
+  --background: #f5f3ef;
+  --foreground: #1c2a22;
+  --card: #ffffff;
+  --muted: #ece9e2;
+  --muted-foreground: #5d6a62;
+  --border: #dedad0;
+  --ring: #3e6c51;
+  --radius: 0.9rem;
+}
+
+@theme inline {
+  --font-sans: 'Oak Sans', ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-verde-900: var(--verde-900);
+  --color-verde-800: var(--verde-800);
+  --color-verde-700: var(--verde-700);
+  --color-oliva: var(--oliva);
+  --color-verde-200: var(--verde-200);
+  --color-amarillo: var(--amarillo);
+  --color-beige: var(--beige);
+  --color-rosa: var(--rosa);
+  --color-rosa-fuerte: var(--rosa-fuerte);
+  --animate-shimmer: shimmer 1.6s infinite linear;
+  --animate-float: float 8s ease-in-out infinite;
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(4deg); }
+  }
+}
+
+html, body, #root { height: 100%; }
+
+@layer base {
+  * { border-color: var(--border); }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: color-mix(in oklab, var(--rosa) 55%, transparent); }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgb(31_51_41/0.05)]; }
+  .card-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_rgb(31_51_41/0.28)] hover:border-verde-700/40; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition duration-150 active:scale-[0.97]; }
+  .btn-primary { @apply bg-verde-700 text-white hover:bg-verde-800; }
+  .btn-ghost { @apply border border-border bg-white text-verde-900 hover:border-verde-700/50 hover:bg-beige; }
+  .chip { @apply inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground; }
+  .chip-brand { @apply bg-verde-200/60 text-verde-900; }
+  .skeleton { @apply rounded-lg bg-[linear-gradient(90deg,#ece9e2_25%,#f7f5f0_50%,#ece9e2_75%)] bg-[length:200%_100%] animate-shimmer; }
+}
+
+/* Mapa: controles OL discretos y con la marca */
+.ol-attribution { font-size: 10px; }
+.ol-attribution ul { color: var(--muted-foreground); }
+.ol-scale-line { position: absolute; bottom: 0.9rem; left: 0.9rem; background: rgb(255 255 255 / 0.85); border-radius: 8px; padding: 2px 6px; }
+.ol-scale-line-inner { border-color: var(--verde-900); color: var(--verde-900); font-size: 10px; font-weight: 600; }
+
+/* Impresión: solo la hoja del diálogo de impresión */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-sheet, #print-sheet * { visibility: visible !important; }
+  #print-sheet { position: fixed; inset: 0; overflow: visible; padding: 1cm; background: #fff; }
+  .no-print { display: none !important; }
+  @page { margin: 0; }
+}

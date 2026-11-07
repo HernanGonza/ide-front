@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" preserveAspectRatio="xMidYMid slice">
+  <!-- PLACEHOLDER: reemplazar por imagen real (cascada / selva) para la tarjeta Documentación técnica -->
+  <defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe3d3"/><stop offset="1" stop-color="#7ea58a"/></linearGradient></defs>
+  <rect width="600" height="240" fill="url(#a)"/>
+  <path d="M0 120 Q150 70 300 110 T600 100 V240 H0z" fill="#3e6c51"/>
+  <rect x="230" y="118" width="150" height="40" rx="4" fill="#eef5f0" opacity=".85"/>
+  <path d="M0 175 Q300 150 600 175 V240 H0z" fill="#2a4636"/>
+</svg>

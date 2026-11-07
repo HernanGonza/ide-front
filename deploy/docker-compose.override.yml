@@ -1,0 +1,10 @@
+# Copiar a ~/geonode/docker-compose.override.yml
+# `docker compose` lo combina automáticamente con el docker-compose.yml de GeoNode.
+services:
+  front:
+    build:
+      context: /home/ideadmin/ide-front   # ruta donde clones/copies este proyecto
+    image: ide-misiones-front:latest
+    container_name: front4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    # Sin puertos publicados: solo accesible desde nginx4geonode por la red interna
