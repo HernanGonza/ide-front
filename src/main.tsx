@@ -36,7 +36,7 @@ const router = createBrowserRouter([
       { path: '/institucional', element: <Institucional /> },
     ],
   },
-])
+], { basename: import.meta.env.BASE_URL.replace(/\/$/, '') })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -1,9 +1,13 @@
-// Todo es same-origin: en producción el Nginx de GeoNode sirve front y back bajo el mismo dominio;
-// en desarrollo, Vite proxea. Por eso las rutas son relativas.
-export const API = '/api/v2'
-export const GEOSERVER = '/geoserver'
+// Todo es same-origin: en producción el nginx del contenedor proxea /api, /geoserver, /catalogue y /uploaded
+// hacia la IDE; en desarrollo, Vite. Si el front cuelga de un prefijo (ej. /ide/), las rutas lo incluyen.
+export const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+export const API = `${BASE}/api/v2`
+export const GEOSERVER = `${BASE}/geoserver`
 export const OWS = `${GEOSERVER}/ows`
-export const CSW = '/catalogue/csw'
+export const CSW = `${BASE}/catalogue/csw`
+
+/** Servidor GeoNode (para ingresar a la gestión). */
+export const GEONODE_ORIGIN = import.meta.env.VITE_GEONODE_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar'
 
 /** Origen público, para mostrar URLs completas de servicios (para copiar en QGIS, etc.). */
 export const PUBLIC_ORIGIN =

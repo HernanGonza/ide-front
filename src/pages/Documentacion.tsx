@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import Page, { PageTitle } from '../ui/Page'
@@ -28,7 +29,7 @@ export default function Documentacion() {
       <PageTitle title="Documentación" subtitle="Guías y recursos para usar la IDE Misiones." />
       <div className="space-y-4">
         <Section i={0} title="Guía de uso del visor"><p>{TODO} Cómo agregar capas, consultar atributos, medir y compartir una vista.</p></Section>
-        <Section i={1} title="Cómo consumir servicios en QGIS"><p>{TODO} Paso a paso para conectar WMS/WFS. Las URLs están en <a className="font-semibold text-verde-700 underline" href="/geoservicios">Geoservicios</a>.</p></Section>
+        <Section i={1} title="Cómo consumir servicios en QGIS"><p>{TODO} Paso a paso para conectar WMS/WFS. Las URLs están en <Link className="font-semibold text-verde-700 underline" to="/geoservicios">Geoservicios</Link>.</p></Section>
         <Section i={2} title="Catálogo de objetos"><p>{TODO} Listado y descripción de los objetos geográficos.</p></Section>
         <Section i={3} id="faq" title="Preguntas frecuentes">
           {FAQ.map((f, k) => (

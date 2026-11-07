@@ -1,3 +1,9 @@
 node_modules
 dist
 .git
+.env
+.claude
+graft
+*.tsbuildinfo
+*.pdf
+*.png

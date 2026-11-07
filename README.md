@@ -51,30 +51,49 @@ trabaja con datos reales y sin CORS. Para apuntar a otro servidor (ej. por Tails
 IDE_ORIGIN=http://<ip-tailscale-srv-ide> npm run dev
 ```
 
-## Deploy en srv-ide
+## Deploy (VM de la oficina, Docker)
 
-1. Copiar el proyecto a `/home/ideadmin/ide-front`.
-2. `cp deploy/docker-compose.override.yml ~/geonode/`
-3. Rutas en el Nginx de GeoNode:
-   ```bash
-   # verificar que sites-enabled se incluya dentro del bloque server
-   docker exec nginx4geonode grep -rn "sites-enabled" /etc/nginx/
-   docker cp deploy/geonode-front.conf nginx4geonode:/etc/nginx/sites-enabled/ide-front.conf
-   ```
-4. Levantar:
-   ```bash
-   cd ~/geonode
-   docker compose build front && docker compose up -d front
-   docker exec nginx4geonode nginx -t && docker exec nginx4geonode nginx -s reload
-   ```
-5. Verificar: `/` muestra el portal nuevo; `/catalogue/#/`, `/api/v2/datasets` y `/geoserver/web` siguen andando.
+Mismo esquema que la wiki: un contenedor (`ide-web`) en la red externa `supabase`, que el nginx de ecodatos
+publica en **https://ecodatos.ecologia.misiones.gob.ar/ide/**.
 
-**Rollback:** `docker exec nginx4geonode rm /etc/nginx/sites-enabled/ide-front.conf && docker exec nginx4geonode nginx -s reload`
+- `ide-web` sirve el front (compilado con base `/ide/`) y reenvía `/api`, `/geoserver`, `/catalogue` y `/uploaded`
+  a la IDE (`ide.ordenamientoterritorial.misiones.gob.ar`), así el navegador habla siempre con un solo dominio (sin CORS).
+- Los pedidos del navegador van a `/ide/api/...`, `/ide/geoserver/...`, etc. No chocan con el `/api/` que ya usa ecodatos.
 
-**Actualizar:** `docker compose build front && docker compose up -d front` (sin tocar GeoNode).
+### Primera vez (una sola)
 
-`/etc/nginx` está en el volumen `geonode-nginxconfd`, así que el archivo persiste entre reinicios.
-Igual conviene confirmarlo después del primer `docker compose restart geonode`.
+```bash
+git clone https://github.com/HernanGonza/ide-front.git && cd ide-front
+cp .env.example .env            # opcional; poner VITE_HOME_LAYERS (capas del mapa de Inicio)
+docker compose up -d --build
+docker compose ps               # ide-web debe quedar "healthy"
+curl -I http://localhost:8091/ide/        # prueba directa, sin el nginx de ecodatos
+```
+
+Después pegar `deploy/ecodatos-nginx-ide.conf` dentro del `server { }` del nginx de ecodatos (junto al bloque de `/wiki/`) y recargar:
+
+```bash
+docker exec app-formularios-nginx nginx -t && docker exec app-formularios-nginx nginx -s reload
+```
+
+### Actualizar
+
+```bash
+git pull && docker compose up -d --build
+```
+
+### Variables (`.env`, todas opcionales)
+
+| Variable | Default | Uso |
+|---|---|---|
+| `VITE_HOME_LAYERS` | vacío | Capas del mapa de Inicio (alternates separados por coma). **Se incrusta al compilar**: cambiarla requiere `--build`. |
+| `IDE_BASE_PATH` | `/ide/` | Ruta donde cuelga el front. |
+| `PUBLIC_ORIGIN` | `https://ecodatos.ecologia.misiones.gob.ar` | Dominio que se muestra en las URLs de Geoservicios. |
+| `GEONODE_ORIGIN` | `https://ide.ordenamientoterritorial.misiones.gob.ar` | Destino del botón "Ingresar". |
+| `IDE_ORIGIN` / `IDE_HOST` | dominio de la IDE | A dónde reenvía los datos el contenedor, y `Host` que envía. Si la VM llega a la IDE por IP interna: `IDE_ORIGIN=http://10.0.0.x` con el mismo `IDE_HOST`. |
+| `IDE_PORT` | `8091` | Puerto de acceso directo para pruebas. |
+
+**Rollback:** quitar el bloque `/ide/` del nginx de ecodatos y recargar; `docker compose down` baja el contenedor.
 
 ## Pendiente (fase 2, requisitos IDERA del visor)
 

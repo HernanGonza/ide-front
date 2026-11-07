@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
     ]),
   )
   return {
+    // Ruta donde cuelga el front (ej. /ide/). En desarrollo y en la raíz del dominio queda '/'.
+    base: process.env.VITE_BASE || '/',
     plugins: [react(), tailwindcss()],
     // Los assets van en /portal-assets/ para no chocar con /static/ de GeoNode.
     build: { assetsDir: 'portal-assets' },

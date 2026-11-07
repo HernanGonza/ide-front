@@ -1,0 +1,34 @@
+# IDE Misiones — front. Cuelga de https://ecodatos.ecologia.misiones.gob.ar/ide/
+# (el nginx de ecodatos lo alcanza por nombre en la red "supabase", igual que la wiki).
+#
+# Actualizar:   git pull && docker compose up -d --build
+# Variables opcionales: archivo .env junto a este (ver .env.example). Sin .env usa los valores por defecto.
+services:
+  ide-web:
+    build:
+      context: .
+      args:
+        VITE_BASE: ${IDE_BASE_PATH:-/ide/}
+        VITE_PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://ecodatos.ecologia.misiones.gob.ar}
+        VITE_GEONODE_ORIGIN: ${GEONODE_ORIGIN:-https://ide.ordenamientoterritorial.misiones.gob.ar}
+        VITE_HOME_LAYERS: ${VITE_HOME_LAYERS:-}
+    image: ide-front:latest
+    container_name: ide-web
+    restart: unless-stopped
+    environment:
+      # A dónde reenvía /api, /geoserver, /catalogue y /uploaded
+      IDE_ORIGIN: ${IDE_ORIGIN:-https://ide.ordenamientoterritorial.misiones.gob.ar}
+      IDE_HOST: ${IDE_HOST:-ide.ordenamientoterritorial.misiones.gob.ar}
+    ports:
+      - "${IDE_PORT:-8091}:80"   # acceso directo para probar: http://IP:8091/ide/
+    networks: [supabase]
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1/ide/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  supabase:
+    name: supabase
+    external: true

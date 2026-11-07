@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { BookOpen, ChevronLeft, ChevronRight, Building2, CircleHelp, Cloud, FileText, Layers, LogIn, MapPin, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from 'lucide-react'
+import { GEONODE_ORIGIN } from '../lib/config'
 import Logo from '../ui/Logo'
 import { Flor, PatronFlores } from '../ui/brand'
 
@@ -127,7 +128,7 @@ export default function Layout() {
             />
           </form>
           <Link to="/documentacion" className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-verde-900 hover:bg-muted sm:flex"><CircleHelp className="h-[18px] w-[18px]" /> Ayuda</Link>
-          <a href="/account/login/" className="btn btn-primary shrink-0"><LogIn className="h-4 w-4" /> <span className="hidden sm:inline">Ingresar</span></a>
+          <a href={`${GEONODE_ORIGIN}/account/login/`} className="btn btn-primary shrink-0"><LogIn className="h-4 w-4" /> <span className="hidden sm:inline">Ingresar</span></a>
         </header>
 
         <main className={fullBleed ? 'relative min-h-0 flex-1' : 'min-h-0 flex-1 overflow-y-auto'}>
