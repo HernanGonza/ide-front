@@ -12,6 +12,10 @@ Orden de trabajo: **primero funcionamiento y lógica** (empezando por "Mañana e
 - El front ya no publica `/o/` de GeoNode en su proxy, y se filtra el `Set-Cookie` de GeoNode para no pisar cookies de otras apps del dominio.
 - Desarrollo: `npm run dev` y, en otra terminal, `npm run dev:auth`.
 
+## Integración con el resto de sistemas (ingreso único)
+
+Diseño en curso, **nada implementado**: usuarios únicos de Ecodatos para todos los sistemas del Ministerio y una botonera central que decide quién ve qué. Detalle, decisiones, riesgos y pendientes en [`INTEGRACION.md`](INTEGRACION.md). Lo que afecta a la IDE: los técnicos entrarían con el usuario de Ecodatos (GeoNode validando contra Supabase o consumiendo OIDC); el público sigue con las cuentas locales actuales.
+
 ## Para preguntarle al jefe: qué es público y qué va con cuenta
 
 Antes cualquiera podía publicar y ver todo. Hay que definir la reorganización antes de construir permisos, porque decide qué rutas exigen sesión y qué lleva la sidebar de los logueados.
