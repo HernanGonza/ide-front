@@ -14,7 +14,7 @@ import { randomBytes } from 'node:crypto'
 import { createChallenge, verifySolution } from 'altcha-lib/v1'
 
 const ORIGIN = (process.env.IDE_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar').replace(/\/$/, '')
-const CLIENT_ID = process.env.OAUTH_CLIENT_ID || ''
+const CLIENT_ID = process.env.OAUTH_CLIENT_ID || process.env.VITE_OAUTH_CLIENT_ID || ''
 const SIGNUP = `${ORIGIN}/account/signup/`
 const FIELDS = ['email', 'username', 'password1', 'password2']
 

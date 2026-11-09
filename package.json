@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:auth": "npm --prefix deploy/auth install --no-audit --no-fund && node --env-file=.env deploy/auth/server.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.59.0",

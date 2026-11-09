@@ -25,8 +25,8 @@ export default function Captcha({ onChange, resetKey = 0 }: { onChange: (payload
 
   return (
     // el div con key fuerza un widget nuevo (y un desafío nuevo) cada vez que cambia resetKey
-    <div key={resetKey}>
-      <altcha-widget ref={ref} challengeurl={`${AUTH_API}/captcha`} language="es-es" auto="onfocus" hidefooter />
+    <div key={resetKey} className="flex justify-center">
+      <altcha-widget ref={ref} challengeurl={`${AUTH_API}/captcha`} language="es-es" hidefooter />
     </div>
   )
 }

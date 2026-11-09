@@ -42,6 +42,7 @@ pero el portal ya no depende de ella para visualizar: el visor propio (`/visor`)
 ```bash
 npm install
 npm run dev        # http://localhost:5173
+npm run dev:auth   # en otra terminal: servicio de cuentas (login, registro, captcha) en el puerto 8000
 ```
 
 Vite proxea `/api`, `/geoserver`, `/uploaded`, `/static` y `/catalogue` al servidor real, así que se
