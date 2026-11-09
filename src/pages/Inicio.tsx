@@ -48,8 +48,8 @@ export default function Inicio() {
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-8 md:px-8 md:py-10">
           <span className="h-14 w-1.5 shrink-0 rounded-full bg-verde-200 md:h-16" />
           <div className="text-white">
-            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Visor geográfico</h1>
-            <p className="mt-1 text-lg text-white/90 md:text-xl">Explorá la información territorial de Misiones</p>
+            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">IDE Misiones</h1>
+            <p className="mt-1 text-lg text-white/90 md:text-xl">Infraestructura de Datos Espaciales: explorá la información territorial de la provincia</p>
           </div>
         </div>
       </section>

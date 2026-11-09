@@ -1,22 +1,27 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { BookOpen, ChevronLeft, ChevronRight, Building2, CircleHelp, Cloud, FileText, Layers, LogIn, MapPin, Map as MapIcon, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from 'lucide-react'
-import { GEONODE_ORIGIN } from '../lib/config'
+import { BookOpen, ChevronLeft, ChevronRight, Building2, CircleHelp, Cloud, FileText, Layers, LogIn, LogOut, MapPin, Map as MapIcon, Menu, Search, User, X } from 'lucide-react'
+import { logout, useSession } from '../lib/auth'
 import Logo from '../ui/Logo'
 import { Flor, PatronFlores } from '../ui/brand'
 
-const NAV = [
+const NAV: { to: string; label: string; short?: string; icon: typeof MapIcon; end?: boolean; also?: string[] }[] = [
   { to: '/', label: 'Inicio', icon: MapIcon, end: true },
-  { to: '/visor', label: 'Visor geográfico', icon: MapPin },
-  { to: '/catalogo', label: 'Catálogo de datos', icon: Layers },
+  { to: '/visor', label: 'Visor geográfico', short: 'Visor', icon: MapPin },
+  { to: '/catalogo', label: 'Catálogo de datos', short: 'Catálogo', icon: Layers, also: ['/capa'] },
   { to: '/metadatos', label: 'Metadatos', icon: FileText },
   { to: '/geoservicios', label: 'Geoservicios', icon: Cloud },
   { to: '/documentacion', label: 'Documentación', icon: BookOpen },
   { to: '/organismos', label: 'Organismos', icon: Building2 },
 ]
 
+/** Activo si la ruta es la del ítem o una de sus páginas hijas (ej. /capa/:pk cuelga del catálogo). */
+const isOn = (n: (typeof NAV)[number], pathname: string, linkActive: boolean) =>
+  linkActive || !!n.also?.some((p) => pathname === p || pathname.startsWith(p + '/'))
+
 function SidebarContent({ onNavigate, collapsed = false }: { onNavigate?: () => void; collapsed?: boolean }) {
+  const { pathname } = useLocation()
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-verde-900 text-white/80">
       <PatronFlores className="absolute -bottom-6 -left-10 h-56 w-80 text-white/[0.05]" />
@@ -32,7 +37,7 @@ function SidebarContent({ onNavigate, collapsed = false }: { onNavigate?: () => 
               onClick={onNavigate}
               title={collapsed ? n.label : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${collapsed ? 'justify-center' : ''} ${isActive ? 'bg-verde-700 text-white' : 'hover:bg-white/10 hover:text-white'}`
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${collapsed ? 'justify-center' : ''} ${isOn(n, pathname, isActive) ? 'bg-verde-700 text-white' : 'hover:bg-white/10 hover:text-white'}`
               }
             >
               <n.icon className="h-5 w-5 shrink-0" strokeWidth={1.8} /> {!collapsed && <span className="truncate">{n.label}</span>}
@@ -51,7 +56,108 @@ function SidebarContent({ onNavigate, collapsed = false }: { onNavigate?: () => 
   )
 }
 
+function FloatingNav() {
+  const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
+  const nav = useNavigate()
+  const { pathname } = useLocation()
+  useEffect(() => setOpen(false), [pathname])
+  const search = (e: React.FormEvent) => { e.preventDefault(); nav(`/catalogo?q=${encodeURIComponent(q)}`) }
+  const link = (n: (typeof NAV)[number]) => ({ isActive }: { isActive: boolean }) =>
+    `relative whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${isOn(n, pathname, isActive) ? 'text-white' : 'text-verde-900/80 hover:bg-muted hover:text-verde-900'}`
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-3 z-40 px-3 md:px-6">
+      <div className="pointer-events-auto mx-auto max-w-7xl rounded-3xl border border-border bg-white/90 shadow-[0_8px_30px_-12px_rgb(31_51_41/0.35)] backdrop-blur-md">
+        <div className="flex items-center gap-3 px-3 py-2.5 md:px-5">
+          <Link to="/" title="IDE Misiones" className="flex shrink-0 items-center gap-2.5">
+            <Flor className="h-9 w-9" />
+            <span className="hidden text-sm font-bold leading-tight text-verde-900 sm:block">IDE<br />Misiones</span>
+          </Link>
+          <span className="mx-1 hidden h-6 w-px shrink-0 bg-border xl:block" />
+          <nav className="hidden flex-1 items-center gap-1 xl:flex" aria-label="Principal">
+            {NAV.map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} className={link(n)}>
+                {({ isActive }) => (
+                  <>
+                    {isOn(n, pathname, isActive) && <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-verde-700 shadow-sm" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                    <span className="relative z-10">{n.short ?? n.label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="flex-1 xl:hidden" />
+          <Link to="/catalogo" aria-label="Buscar en el catálogo" title="Buscar" className="hidden rounded-full p-2 text-verde-900 hover:bg-muted md:block 2xl:hidden"><Search className="h-5 w-5" /></Link>
+          <form onSubmit={search} className="relative hidden 2xl:block">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar capas…" className="w-48 rounded-full border border-border bg-beige/60 py-1.5 pl-9 pr-3 text-sm outline-none transition focus:border-verde-700 focus:bg-white" />
+          </form>
+          <Link to="/registro" className="hidden whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-verde-900 hover:bg-muted md:block">Crear cuenta</Link>
+          <Link to="/ingresar" className="btn btn-primary shrink-0"><LogIn className="h-4 w-4" /> <span className="hidden sm:inline">Ingresar</span></Link>
+          <button onClick={() => setOpen((o) => !o)} aria-label={open ? 'Cerrar menú' : 'Abrir menú'} className="rounded-full p-2 text-verde-900 hover:bg-muted xl:hidden">{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+        </div>
+        <AnimatePresence>
+          {open && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden xl:hidden">
+              <div className="space-y-1 border-t border-border p-3">
+                <form onSubmit={search} className="relative mb-2">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar capas, mapas o lugares…" className="w-full rounded-full border border-border bg-beige/60 py-2 pl-9 pr-3 text-sm outline-none focus:border-verde-700" />
+                </form>
+                {NAV.map((n) => (
+                  <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${isOn(n, pathname, isActive) ? 'bg-verde-700 text-white' : 'text-verde-900 hover:bg-muted'}`}>
+                    <n.icon className="h-5 w-5" strokeWidth={1.8} /> {n.label}
+                  </NavLink>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
 export default function Layout() {
+  const { user } = useSession()
+  return user ? <SidebarLayout username={user.username} /> : <PublicLayout />
+}
+
+function useScrollOnNav() {
+  const { pathname, hash } = useLocation()
+  // main es el contenedor con scroll: anclas (#faq, #contacto) y scroll al tope
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const el = hash ? document.getElementById(hash.slice(1)) : null
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      else document.querySelector('main')?.scrollTo({ top: 0 })
+    }, 60)
+    return () => clearTimeout(t)
+  }, [pathname, hash])
+}
+
+function PublicLayout() {
+  const { pathname } = useLocation()
+  const fullBleed = pathname.startsWith('/visor')
+  useScrollOnNav()
+  return (
+    <div className="relative flex h-full flex-col">
+      <FloatingNav />
+      {/* pt-[4.5rem]: deja lugar al nav flotante */}
+      <main className={fullBleed ? 'relative min-h-0 flex-1 pt-[4.5rem]' : 'min-h-0 flex-1 overflow-y-auto pt-[4.5rem]'}>
+        {fullBleed ? (
+          <div className="relative h-full"><Outlet /></div>
+        ) : (
+          <motion.div key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+            <Outlet />
+          </motion.div>
+        )}
+      </main>
+    </div>
+  )
+}
+
+function SidebarLayout({ username }: { username: string }) {
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() => {
@@ -68,19 +174,11 @@ export default function Layout() {
     return () => window.removeEventListener('keydown', h)
   }, [])
   const nav = useNavigate()
-  const { pathname, hash } = useLocation()
+  const { pathname } = useLocation()
   const fullBleed = pathname.startsWith('/visor')
 
   useEffect(() => setOpen(false), [pathname])
-  // main es el contenedor con scroll: anclas (#faq, #contacto) y scroll al tope
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const el = hash ? document.getElementById(hash.slice(1)) : null
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      else document.querySelector('main')?.scrollTo({ top: 0 })
-    }, 60)
-    return () => clearTimeout(t)
-  }, [pathname, hash])
+  useScrollOnNav()
 
   return (
     <div className="flex h-full">
@@ -110,7 +208,6 @@ export default function Layout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 border-b border-border bg-white px-4 py-3 md:px-6">
-          <button onClick={toggle} aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'} title="Colapsar menú (Ctrl+B)" className="hidden rounded-full p-2 text-verde-900 hover:bg-muted md:block">{collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}</button>
           <button onClick={() => setOpen(true)} aria-label="Abrir menú" className="rounded-full p-2 text-verde-900 hover:bg-muted md:hidden"><Menu className="h-5 w-5" /></button>
           <form
             className="relative min-w-0 flex-1"
@@ -128,7 +225,8 @@ export default function Layout() {
             />
           </form>
           <Link to="/documentacion" className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-verde-900 hover:bg-muted sm:flex"><CircleHelp className="h-[18px] w-[18px]" /> Ayuda</Link>
-          <a href={`${GEONODE_ORIGIN}/account/login/`} className="btn btn-primary shrink-0"><LogIn className="h-4 w-4" /> <span className="hidden sm:inline">Ingresar</span></a>
+          <span className="flex shrink-0 items-center gap-2 rounded-full bg-muted px-3 py-2 text-sm font-medium text-verde-900"><User className="h-4 w-4" /> <span className="hidden sm:inline">{username}</span></span>
+          <button onClick={() => { void logout() }} className="btn btn-ghost shrink-0" title="Cerrar sesión"><LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Salir</span></button>
         </header>
 
         <main className={fullBleed ? 'relative min-h-0 flex-1' : 'min-h-0 flex-1 overflow-y-auto'}>

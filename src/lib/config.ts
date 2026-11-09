@@ -9,6 +9,11 @@ export const CSW = `${BASE}/catalogue/csw`
 /** Servidor GeoNode (para ingresar a la gestión). */
 export const GEONODE_ORIGIN = import.meta.env.VITE_GEONODE_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar'
 
+/** Client ID de la Application OAuth2 'ide-front' creada en GeoNode (público, grant password). */
+export const OAUTH_CLIENT_ID = import.meta.env.VITE_OAUTH_CLIENT_ID || ''
+export const OAUTH_TOKEN_URL = `${BASE}/o/token/`
+export const OAUTH_REVOKE_URL = `${BASE}/o/revoke_token/`
+
 /** Origen público, para mostrar URLs completas de servicios (para copiar en QGIS, etc.). */
 export const PUBLIC_ORIGIN =
   import.meta.env.VITE_PUBLIC_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar'

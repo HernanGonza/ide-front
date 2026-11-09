@@ -1,5 +1,6 @@
 // Cliente mínimo de la API REST v2 de GeoNode 4.3.x
 import { API } from './config'
+import { authHeaders, refreshSession } from './auth'
 
 export interface Link {
   extension?: string
@@ -51,10 +52,10 @@ export interface Paged<T> {
 async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const qs = new URLSearchParams()
   Object.entries(params ?? {}).forEach(([k, v]) => v !== undefined && v !== '' && qs.append(k, String(v)))
-  const res = await fetch(`${API}${path}${qs.size ? `?${qs}` : ''}`, {
-    headers: { Accept: 'application/json' },
-    credentials: 'same-origin',
-  })
+  const url = `${API}${path}${qs.size ? `?${qs}` : ''}`
+  const doFetch = () => fetch(url, { headers: { Accept: 'application/json', ...authHeaders() } })
+  let res = await doFetch()
+  if (res.status === 401 && (await refreshSession())) res = await doFetch()
   if (!res.ok) throw new Error(`GeoNode ${res.status} en ${path}`)
   return res.json()
 }

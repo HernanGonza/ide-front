@@ -6,14 +6,23 @@ Para revisar con los técnicos (martes). Primero opinan sobre diseño y uso; des
 
 | Tema | Estado hoy | Notas |
 |---|---|---|
-| Login / sesión | No hay. "Ingresar" lleva al login de GeoNode | Ver si la sesión de GeoNode se puede compartir entre dominios (`ide.ordenamientoterritorial…` vs `ecodatos…`). Hay que probarlo. |
-| Capas privadas | No se ven (el front consulta como anónimo) | Depende del punto anterior. |
+| Login / sesión | Hecho (sin probar en producción): pantalla propia `/ingresar`, OAuth2 grant `password` contra `/o/token/`, token en localStorage con refresh. Layout: nav flotante para anónimos, sidebar para logueados | Application `ide-front` creada en GeoNode (cliente público); su `CLIENT_ID` está en `.env` (`VITE_OAUTH_CLIENT_ID`). Falta probar con un usuario real, en especial `GET /api/v2/users/me`. |
+| Registro | Hecho (sin probar un alta real): `/registro` propio, abierto y sin aprobación | Lo hace el servicio `ide-auth` (`deploy/auth/server.py`), que completa el alta de GeoNode del lado del servidor. Protecciones: campo trampa y tope por IP (`MAX_SIGNUPS_PER_IP_HOUR`, 10/h). |
+| Capas privadas | Deberían verse al ingresar (las consultas van con Bearer y el caché se limpia al loguear) | Verificar con un usuario que tenga permisos sobre una capa privada. |
 | Subir/administrar capas, editar metadatos, permisos | Sigue en GeoNode (`/catalogue/`) | |
 | Estilos permanentes | El visor cambia el estilo solo para esa vista (SLD_BODY, no se guarda) | Guardar en GeoServer requiere login + API REST. |
 | Mapas guardados | Solo se muestra la cantidad en Inicio | Falta página para listarlos/abrirlos y guardar mapas propios. |
 | Documentos | No se muestran | GeoNode tiene `/api/v2/documents`. |
 | Filtros avanzados del catálogo | Solo categoría y orden | Faltan fecha, palabra clave, organismo. |
 | Edición de entidades | No | |
+
+## Login y cuentas (siguiente)
+
+- [ ] Probar en la VM: `git pull && docker compose up -d --build` (ahora construye `ide-web` e `ide-auth`), crear una cuenta en `/ide/registro` y entrar en `/ide/ingresar`.
+- [ ] Correo: GeoNode tiene `EMAIL_ENABLE=False` y SMTP en localhost, así que no se verifica el mail ni hay "olvidé mi contraseña". Configurar un SMTP real y armar la recuperación de contraseña en el front.
+- [ ] Perfil de usuario: ver/editar datos y cambiar contraseña (`/api/v2/users/me`).
+- [ ] Anti-bots más fuerte si hace falta (hoy: campo trampa + tope por IP; sin captcha por decisión de dejar el registro libre).
+- [ ] Decidir si el `/account/login/` y `/account/signup/` de GeoNode se bloquean desde el nginx de la IDE una vez que el front propio esté probado.
 
 ## Contenido y datos
 

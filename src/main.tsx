@@ -11,6 +11,8 @@ import Metadatos from './pages/Metadatos'
 import Documentacion from './pages/Documentacion'
 import Organismos from './pages/Organismos'
 import Institucional from './pages/Institucional'
+import Ingresar from './pages/Ingresar'
+import Registro from './pages/Registro'
 
 // Las páginas con mapa cargan OpenLayers aparte
 const Capa = lazy(() => import('./pages/Capa'))
@@ -34,6 +36,8 @@ const router = createBrowserRouter([
       { path: '/documentacion', element: <Documentacion /> },
       { path: '/organismos', element: <Organismos /> },
       { path: '/institucional', element: <Institucional /> },
+      { path: '/ingresar', element: <Ingresar /> },
+      { path: '/registro', element: <Registro /> },
     ],
   },
 ], { basename: import.meta.env.BASE_URL.replace(/\/$/, '') })

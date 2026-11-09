@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const target = env.IDE_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar'
   const proxy = Object.fromEntries(
-    ['/api', '/geoserver', '/uploaded', '/static', '/catalogue'].map((p) => [
+    ['/api', '/geoserver', '/uploaded', '/static', '/catalogue', '/o'].map((p) => [
       p,
       { target, changeOrigin: true, secure: true },
     ]),
