@@ -60,15 +60,27 @@ export function refreshSession(): Promise<boolean> {
   return refreshing
 }
 
+/** GeoNode 4.3 no tiene /users/me: se busca al usuario por nombre o correo. Si falla, la sesión igual se abre. */
+async function fetchUser(access: string, typed: string): Promise<SessionUser> {
+  const key = typed.includes('@') ? 'filter{email}' : 'filter{username}'
+  try {
+    const r = await fetch(`${API}/users?${new URLSearchParams({ [key]: typed, page_size: '1' })}`, {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${access}` },
+    })
+    if (r.ok) {
+      const u = (await r.json()).users?.[0]
+      if (u?.username) return u as SessionUser
+    }
+  } catch { /* se usa lo escrito */ }
+  return { username: typed }
+}
+
 export async function login(username: string, password: string): Promise<void> {
   if (!OAUTH_CLIENT_ID) throw new Error('Falta configurar VITE_OAUTH_CLIENT_ID')
   const { ok, data } = await tokenRequest({ grant_type: 'password', username, password })
   if (!ok) throw new Error(data.error === 'invalid_grant' ? 'Usuario o contraseña incorrectos' : 'No se pudo iniciar sesión')
   const access = data.access_token as string
-  const r = await fetch(`${API}/users/me`, { headers: { Accept: 'application/json', Authorization: `Bearer ${access}` } })
-  if (!r.ok) throw new Error('No se pudo leer el perfil del usuario')
-  const j = await r.json()
-  const user: SessionUser = j.user ?? j
+  const user = await fetchUser(access, username)
   write({ access, refresh: data.refresh_token, expires: Date.now() + data.expires_in * 1000, user })
 }
 
