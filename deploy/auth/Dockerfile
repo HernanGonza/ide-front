@@ -1,6 +1,8 @@
-FROM python:3.12-alpine
+FROM node:22-alpine
 WORKDIR /app
-COPY server.py .
-USER nobody
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY server.js ./
+USER node
 EXPOSE 8000
-CMD ["python", "-u", "server.py"]
+CMD ["node", "server.js"]

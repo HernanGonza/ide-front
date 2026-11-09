@@ -7,7 +7,7 @@ Para revisar con los técnicos (martes). Primero opinan sobre diseño y uso; des
 | Tema | Estado hoy | Notas |
 |---|---|---|
 | Login / sesión | Hecho (sin probar en producción): pantalla propia `/ingresar`, OAuth2 grant `password` contra `/o/token/`, token en localStorage con refresh. Layout: nav flotante para anónimos, sidebar para logueados | Application `ide-front` creada en GeoNode (cliente público); su `CLIENT_ID` está en `.env` (`VITE_OAUTH_CLIENT_ID`). Registro y token probados en producción. `/api/v2/users/me` no existe en GeoNode 4.3 (da 404): el usuario se busca con `/api/v2/users?filter{username}=…`; falta confirmar que ese listado devuelva al propio usuario (si no, la sesión usa el nombre escrito). |
-| Registro | Hecho (sin probar un alta real): `/registro` propio, abierto y sin aprobación | Lo hace el servicio `ide-auth` (`deploy/auth/server.py`), que completa el alta de GeoNode del lado del servidor. Protecciones: campo trampa y tope por IP (`MAX_SIGNUPS_PER_IP_HOUR`, 10/h). |
+| Registro | Hecho (sin probar un alta real): `/registro` propio, abierto y sin aprobación | Lo hace el servicio `ide-auth` (Node, `deploy/auth/server.js`), que completa el alta de GeoNode del lado del servidor. Protecciones: captcha propio ALTCHA (prueba de trabajo, también en el login), campo trampa y topes por IP (`MAX_SIGNUPS_PER_IP_HOUR` 10/h, `MAX_LOGINS_PER_IP_10MIN` 20). |
 | Capas privadas | Deberían verse al ingresar (las consultas van con Bearer y el caché se limpia al loguear) | Verificar con un usuario que tenga permisos sobre una capa privada. |
 | Subir/administrar capas, editar metadatos, permisos | Sigue en GeoNode (`/catalogue/`) | |
 | Estilos permanentes | El visor cambia el estilo solo para esa vista (SLD_BODY, no se guarda) | Guardar en GeoServer requiere login + API REST. |
@@ -21,7 +21,8 @@ Para revisar con los técnicos (martes). Primero opinan sobre diseño y uso; des
 - [ ] Probar en la VM: `git pull && docker compose up -d --build` (ahora construye `ide-web` e `ide-auth`), crear una cuenta en `/ide/registro` y entrar en `/ide/ingresar`.
 - [ ] Correo: GeoNode tiene `EMAIL_ENABLE=False` y SMTP en localhost, así que no se verifica el mail ni hay "olvidé mi contraseña". Configurar un SMTP real y armar la recuperación de contraseña en el front.
 - [ ] Perfil de usuario: ver/editar datos y cambiar contraseña (por `/api/v2/users/<pk>`, no hay `/me`).
-- [ ] Anti-bots más fuerte si hace falta (hoy: campo trampa + tope por IP; sin captcha por decisión de dejar el registro libre).
+- [ ] Captcha: definir `CAPTCHA_SECRET` en el `.env` de la VM (`openssl rand -hex 32`); sin eso se genera uno al arrancar y los desafíos pendientes se pierden en cada reinicio. Si hay mucho spam, subir `MAX_NUMBER` en `server.js` (dificultad).
+- [ ] El front ya no usa `/o/` de GeoNode (se sacó del proxy): el login y el registro pasan por `ide-auth`. Pero `ide.ordenamientoterritorial…/o/token/` y `/account/signup/` siguen abiertos directo en GeoNode y se saltean el captcha. Bloquearlos en el nginx de GeoNode cuando el front propio esté probado.
 - [ ] Decidir si el `/account/login/` y `/account/signup/` de GeoNode se bloquean desde el nginx de la IDE una vez que el front propio esté probado.
 
 ## Contenido y datos

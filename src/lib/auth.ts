@@ -1,7 +1,7 @@
 // Sesión propia contra GeoNode (OAuth2, grant "password"). GeoNode es solo el back:
 // el usuario nunca ve su pantalla de login. El token se guarda en localStorage.
 import { useSyncExternalStore } from 'react'
-import { API, BASE, OAUTH_CLIENT_ID, OAUTH_REVOKE_URL, OAUTH_TOKEN_URL } from './config'
+import { API, AUTH_API } from './config'
 
 export interface SessionUser {
   username: string
@@ -36,11 +36,12 @@ export function authHeaders(): Record<string, string> {
   return state ? { Authorization: `Bearer ${state.access}` } : {}
 }
 
+/** Todo pasa por ide-auth (captcha, límites de intentos); el navegador no habla directo con /o/token/. */
 async function tokenRequest(body: Record<string, string>) {
-  const res = await fetch(OAUTH_TOKEN_URL, {
+  const res = await fetch(`${AUTH_API}/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: new URLSearchParams({ client_id: OAUTH_CLIENT_ID, ...body }),
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
   })
   const data = await res.json().catch(() => ({}))
   return { ok: res.ok, data }
@@ -75,22 +76,32 @@ async function fetchUser(access: string, typed: string): Promise<SessionUser> {
   return { username: typed }
 }
 
-export async function login(username: string, password: string): Promise<void> {
-  if (!OAUTH_CLIENT_ID) throw new Error('Falta configurar VITE_OAUTH_CLIENT_ID')
-  const { ok, data } = await tokenRequest({ grant_type: 'password', username, password })
-  if (!ok) throw new Error(data.error === 'invalid_grant' ? 'Usuario o contraseña incorrectos' : 'No se pudo iniciar sesión')
-  const access = data.access_token as string
-  const user = await fetchUser(access, username)
-  write({ access, refresh: data.refresh_token, expires: Date.now() + data.expires_in * 1000, user })
+interface TokenData { access_token: string; refresh_token?: string; expires_in: number }
+
+async function openSession(token: TokenData, typed: string) {
+  const user = await fetchUser(token.access_token, typed)
+  write({ access: token.access_token, refresh: token.refresh_token, expires: Date.now() + token.expires_in * 1000, user })
 }
 
-export interface RegisterResult { ok: boolean; errors?: Record<string, string[]>; error?: string }
+/** `captcha` es el payload que entrega el widget al resolver el desafío (vale una sola vez). */
+export async function login(username: string, password: string, captcha: string): Promise<void> {
+  const { ok, data } = await tokenRequest({ grant_type: 'password', username, password, captcha })
+  if (!ok) {
+    if (data.error === 'invalid_grant') throw new Error('Usuario o contraseña incorrectos')
+    throw new Error(data.error_description || 'No se pudo iniciar sesión')
+  }
+  await openSession(data, username)
+}
 
-/** Crea la cuenta (servicio ide-auth → formulario de alta de GeoNode). */
+export interface RegisterResult { ok: boolean; loggedIn?: boolean; errors?: Record<string, string[]>; error?: string }
+
+/** Crea la cuenta (ide-auth → alta de GeoNode) y, si sale bien, deja la sesión iniciada. */
 export async function register(data: Record<string, string>): Promise<RegisterResult> {
-  const res = await fetch(`${BASE}/registro-api`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  const res = await fetch(`${AUTH_API}/registro`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
   const j = await res.json().catch(() => ({}))
-  return res.ok ? { ok: true } : { ok: false, errors: j.errors, error: j.error ?? (j.errors ? '' : 'No se pudo crear la cuenta') }
+  if (!res.ok) return { ok: false, errors: j.errors, error: j.error ?? (j.errors ? '' : 'No se pudo crear la cuenta') }
+  if (j.token) await openSession(j.token, data.username)
+  return { ok: true, loggedIn: !!j.token }
 }
 
 export async function logout(): Promise<void> {
@@ -98,7 +109,7 @@ export async function logout(): Promise<void> {
   write(null)
   if (cur) {
     try {
-      await fetch(OAUTH_REVOKE_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: OAUTH_CLIENT_ID, token: cur.access }) })
+      await fetch(`${AUTH_API}/revoke`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: cur.access }) })
     } catch { /* ya está cerrada acá */ }
   }
 }

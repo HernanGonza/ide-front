@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Circle, UserPlus } from 'lucide-react'
-import { login, register, useSession } from '../lib/auth'
+import { register, useSession } from '../lib/auth'
 import { Flor } from '../ui/brand'
+import Captcha from '../ui/Captcha'
 
 // Reglas del front (GeoNode exige como mínimo 6 caracteres y rechaza contraseñas comunes o solo numéricas)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -64,6 +65,8 @@ export default function Registro() {
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const [ck, setCk] = useState(0)
 
   if (user) return <Navigate to="/" replace />
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,13 +90,13 @@ export default function Registro() {
     const v = validate(f)
     if (Object.keys(v).length) { setErrors(v); setBusy(false); return }
     try {
-      const r = await register({ ...f, email: f.email.trim(), username: f.username.trim() })
-      if (!r.ok) { setErrors(r.errors ?? {}); setErr(r.error ?? ''); return }
-      await login(f.username.trim(), f.password1) // queda con la sesión iniciada
+      const r = await register({ ...f, email: f.email.trim(), username: f.username.trim(), captcha: captcha! })
+      if (!r.ok) { setErrors(r.errors ?? {}); setErr(r.error ?? ''); setCaptcha(null); setCk((k) => k + 1); return }
       qc.clear()
-      nav('/', { replace: true })
+      nav(r.loggedIn ? '/' : '/ingresar', { replace: true })
     } catch (x) {
       setErr(x instanceof Error ? x.message : 'No se pudo crear la cuenta')
+      setCaptcha(null); setCk((k) => k + 1)
     } finally { setBusy(false) }
   }
 
@@ -143,8 +146,9 @@ export default function Registro() {
         {field('password2', 'Repetir contraseña', 'password', 'new-password')}
         {/* honeypot: invisible para personas */}
         <input name="website" value={f.website} onChange={set('website')} tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] h-0 w-0 opacity-0" />
+        <Captcha onChange={setCaptcha} resetKey={ck} />
         {err && <p role="alert" className="rounded-xl bg-rosa/30 px-3 py-2 text-sm text-verde-900">{err}</p>}
-        <button disabled={busy} className="btn btn-primary w-full justify-center disabled:opacity-60"><UserPlus className="h-4 w-4" /> {busy ? 'Creando…' : 'Crear cuenta'}</button>
+        <button disabled={busy || !captcha} className="btn btn-primary w-full justify-center disabled:opacity-60"><UserPlus className="h-4 w-4" /> {busy ? 'Creando…' : 'Crear cuenta'}</button>
         <p className="text-center text-sm text-muted-foreground">¿Ya tenés cuenta? <Link to="/ingresar" className="font-medium text-verde-700 hover:underline">Ingresar</Link></p>
       </form>
     </div>

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { LogIn } from 'lucide-react'
 import { login, useSession } from '../lib/auth'
 import { Flor } from '../ui/brand'
+import Captcha from '../ui/Captcha'
 
 export default function Ingresar() {
   const { user } = useSession()
@@ -13,6 +14,8 @@ export default function Ingresar() {
   const [p, setP] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const [ck, setCk] = useState(0)
 
   if (user) return <Navigate to="/" replace />
 
@@ -20,11 +23,12 @@ export default function Ingresar() {
     e.preventDefault()
     setBusy(true); setErr('')
     try {
-      await login(u.trim(), p)
+      await login(u.trim(), p, captcha!)
       qc.clear() // los datos cambian según permisos (capas privadas)
       nav('/', { replace: true })
     } catch (x) {
       setErr(x instanceof Error ? x.message : 'Error al iniciar sesión')
+      setCaptcha(null); setCk((k) => k + 1) // la solución del captcha ya se usó
     } finally { setBusy(false) }
   }
 
@@ -42,8 +46,9 @@ export default function Ingresar() {
         <label className="block text-sm font-medium text-verde-900">Contraseña
           <input type="password" value={p} onChange={(e) => setP(e.target.value)} autoComplete="current-password" required className="mt-1 w-full rounded-xl border border-border bg-beige/60 px-3 py-2.5 text-sm outline-none focus:border-verde-700 focus:bg-white" />
         </label>
+        <Captcha onChange={setCaptcha} resetKey={ck} />
         {err && <p role="alert" className="rounded-xl bg-rosa/30 px-3 py-2 text-sm text-verde-900">{err}</p>}
-        <button disabled={busy} className="btn btn-primary w-full justify-center disabled:opacity-60"><LogIn className="h-4 w-4" /> {busy ? 'Ingresando…' : 'Ingresar'}</button>
+        <button disabled={busy || !captcha} className="btn btn-primary w-full justify-center disabled:opacity-60"><LogIn className="h-4 w-4" /> {busy ? 'Ingresando…' : 'Ingresar'}</button>
         <p className="text-center text-sm text-muted-foreground">¿No tenés cuenta? <Link to="/registro" className="font-medium text-verde-700 hover:underline">Crear cuenta</Link></p>
       </form>
     </div>

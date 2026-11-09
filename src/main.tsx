@@ -11,12 +11,13 @@ import Metadatos from './pages/Metadatos'
 import Documentacion from './pages/Documentacion'
 import Organismos from './pages/Organismos'
 import Institucional from './pages/Institucional'
-import Ingresar from './pages/Ingresar'
-import Registro from './pages/Registro'
 
 // Las páginas con mapa cargan OpenLayers aparte
 const Capa = lazy(() => import('./pages/Capa'))
 const Visor = lazy(() => import('./pages/Visor'))
+// El captcha (altcha) solo se descarga en las pantallas de cuenta
+const Ingresar = lazy(() => import('./pages/Ingresar'))
+const Registro = lazy(() => import('./pages/Registro'))
 const wait = (el: React.ReactNode) => <Suspense fallback={<div className="p-8"><div className="skeleton h-64" /></div>}>{el}</Suspense>
 
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60_000, retry: 1, refetchOnWindowFocus: false } } })
@@ -36,8 +37,8 @@ const router = createBrowserRouter([
       { path: '/documentacion', element: <Documentacion /> },
       { path: '/organismos', element: <Organismos /> },
       { path: '/institucional', element: <Institucional /> },
-      { path: '/ingresar', element: <Ingresar /> },
-      { path: '/registro', element: <Registro /> },
+      { path: '/ingresar', element: wait(<Ingresar />) },
+      { path: '/registro', element: wait(<Registro />) },
     ],
   },
 ], { basename: import.meta.env.BASE_URL.replace(/\/$/, '') })

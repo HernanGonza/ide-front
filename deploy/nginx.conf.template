@@ -23,7 +23,7 @@ server {
   location ^~ /ide/ { rewrite ^/ide/(.*)$ /$1 last; }
 
   # Datos: se piden al mismo dominio del front y acá se reenvían a la IDE
-  location ~ ^/(api|geoserver|catalogue|uploaded|static|o)/ {
+  location ~ ^/(api|geoserver|catalogue|uploaded|static)/ {
     set $ide_up ${IDE_ORIGIN};
     proxy_pass $ide_up;
     proxy_http_version 1.1;
@@ -36,14 +36,16 @@ server {
     client_max_body_size 5m;   # alcanza para consultas CSW
   }
 
-  # Registro de usuarios → servicio ide-auth (no expuesto afuera)
-  location = /registro-api {
+  # Cuentas (registro, login, captcha) → servicio ide-auth, no expuesto afuera.
+  # El login pasa por acá para que el captcha sea obligatorio: /o/ de GeoNode ya no se publica.
+  location ^~ /auth-api/ {
     set $auth_up http://ide-auth:8000;
+    rewrite ^/auth-api/(.*)$ /$1 break;
     proxy_pass $auth_up;
     proxy_http_version 1.1;
     proxy_set_header X-Real-IP $remote_addr;
     client_max_body_size 8k;
-    limit_except POST { deny all; }
+    limit_except GET POST { deny all; }
   }
 
   # Assets con hash en el nombre → cache larga

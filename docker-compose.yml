@@ -12,7 +12,6 @@ services:
         VITE_PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://ecodatos.ecologia.misiones.gob.ar}
         VITE_GEONODE_ORIGIN: ${GEONODE_ORIGIN:-https://ide.ordenamientoterritorial.misiones.gob.ar}
         VITE_HOME_LAYERS: ${VITE_HOME_LAYERS:-}
-        VITE_OAUTH_CLIENT_ID: ${VITE_OAUTH_CLIENT_ID:-}
     image: ide-front:latest
     container_name: ide-web
     restart: unless-stopped
@@ -29,7 +28,7 @@ services:
       timeout: 5s
       retries: 3
 
-  # Puente de registro: completa el alta de GeoNode del lado del servidor (ver deploy/auth/server.py)
+  # Cuentas: registro, login y captcha propio (ver deploy/auth/server.py)
   ide-auth:
     build: ./deploy/auth
     image: ide-auth:latest
@@ -37,6 +36,8 @@ services:
     restart: unless-stopped
     environment:
       IDE_ORIGIN: ${IDE_ORIGIN:-https://ide.ordenamientoterritorial.misiones.gob.ar}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-${VITE_OAUTH_CLIENT_ID:-}}
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET:-}   # opcional; sin definir se genera una al arrancar
     networks: [supabase]
 
 networks:

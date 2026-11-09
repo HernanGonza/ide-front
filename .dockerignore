@@ -7,3 +7,4 @@ graft
 *.tsbuildinfo
 *.pdf
 *.png
+deploy/auth/node_modules

@@ -7,12 +7,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const target = env.IDE_ORIGIN || 'https://ide.ordenamientoterritorial.misiones.gob.ar'
-  const proxy = Object.fromEntries(
-    ['/api', '/geoserver', '/uploaded', '/static', '/catalogue', '/o'].map((p) => [
-      p,
-      { target, changeOrigin: true, secure: true },
-    ]),
+  const proxy: Record<string, { target: string; changeOrigin: boolean; secure?: boolean; rewrite?: (p: string) => string }> = Object.fromEntries(
+    ['/api', '/geoserver', '/uploaded', '/static', '/catalogue'].map((p) => [p, { target, changeOrigin: true, secure: true }]),
   )
+  // Cuentas en desarrollo: python3 deploy/auth/server.py (puerto 8000, con OAUTH_CLIENT_ID definido)
+  proxy['/auth-api'] = { target: env.AUTH_ORIGIN || 'http://localhost:8000', changeOrigin: true, rewrite: (p) => p.replace(/^\/auth-api/, '') }
   return {
     // Ruta donde cuelga el front (ej. /ide/). En desarrollo y en la raíz del dominio queda '/'.
     base: process.env.VITE_BASE || '/',

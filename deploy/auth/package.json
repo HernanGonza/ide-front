@@ -1,0 +1,9 @@
+{
+  "name": "ide-auth",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Cuentas de la IDE Misiones: registro, login y captcha propio",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "altcha-lib": "2.8.0" }
+}
